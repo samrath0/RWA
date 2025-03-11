@@ -11,6 +11,9 @@ const db = require(__dirname+'/config/db');
 const date = require(__dirname+'/date/date');
 const crypto = require('crypto');
 
+
+
+
 // Access environment variables
 dotenv.config();
 const Razorpay = require('razorpay');
@@ -33,6 +36,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 db.connectDB()
 
+app.get("/pay-with-qr", (req, res) => {
+    res.render("qr_payment", { title: "Pay with QR" });
+});
 app.get("/", async (req, res) => {
     try {
         let pageVisit = await visit_collection.Visit.findOne({});

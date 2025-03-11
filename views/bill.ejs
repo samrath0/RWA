@@ -5,13 +5,10 @@
           <button id="download-btn" class="btn btn-info btn-md text-uppercase" style="border-radius: 3rem; max-width: 180px;">
               Download Bill
           </button>
-          <button 
-              <% if(billDetails.totalAmount == 0){ %> 
-                  disabled
-              <% } %>
-              id="checkout-button" class="btn btn-success btn-md text-uppercase" style="border-radius: 3rem; max-width: 180px;">
-              Pay Bill
-          </button>
+          <a href="/pay-with-qr" class="btn btn-success btn-md text-uppercase" style="border-radius: 3rem; max-width: 180px;">
+            Pay Bill
+        </a>
+        
           <% if(resident.isAdmin){ %>
           <a href="/editBill" class="btn btn-primary btn-md text-uppercase" style="border-radius: 3rem; max-width: 180px;">
               Edit Bill
@@ -183,90 +180,7 @@
   <% } %>
 </div>
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script type="text/javascript">
-  var checkoutButton = document.getElementById("checkout-button");
 
-  checkoutButton.addEventListener("click", function () {
-    console.log("PayBill-Clicked")
-    // Fetch order details from server
-    fetch("/create-razorpay-order", {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        "amount": Number("<%= billDetails.totalAmount %>"),
-        "societyName": "<%= society.societyName %>"
-    })
-    })
-    .then(function (response) {
-      return response.json();
-    })
-    .then(function (orderData) {
-      console.log("Order Data:", orderData);
-      var options = {
-        "key": "<%= razorpayKeyId%>", 
-        "amount": orderData.amount, 
-        "currency": "INR",
-        "name": "<%= society.societyName%>",
-        "description": "Bill Payment",
-        "order_id": orderData.id, 
-        "handler": function (response) {
-          // Send verification request to server
-          fetch('/verify-payment', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_signature: response.razorpay_signature
-            })
-          })
-          .then(verifyResponse => verifyResponse.json())
-          .then(verifyData => {
-            console.log("Verify Data:", verifyData)
-            if (verifyData.success) {
-              // Payment successful, redirect or show success message
-              window.location.href = '/payment-success';
-            } else {
-              // Payment verification failed
-              alert('Payment verification failed');
-              console.log(verifyData.error)
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            alert('Payment verification failed');
-          });
-          console.log(options)
-        },
-        "prefill": {
-          "name": "<%= resident.firstName %> <%= resident.lastName %>",
-          "email": "<%= resident.username %>",
-          "contact": "<%= resident.phoneNumber %>"
-        },
-        "notes": {
-          "address": "<%=society.societyName%>"
-        },
-        "theme": {
-          "color": "#3399cc"
-        }
-      };
-      
-      var rzp1 = new window.Razorpay(options);
-      rzp1.open();
-      
-      return false;
-    })
-    .catch(function (error) {
-      console.error("Error:", error);
-      alert("Failed to create payment order");
-    });
-  });
-</script>
 <script>
   var a = ['','one ','two ','three ','four ', 'five ','six ','seven ','eight ','nine ','ten ','eleven ','twelve ','thirteen ','fourteen ','fifteen ','sixteen ','seventeen ','eighteen ','nineteen '];
   var b = ['', '', 'twenty','thirty','forty','fifty', 'sixty','seventy','eighty','ninety'];
